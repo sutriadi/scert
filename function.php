@@ -1,6 +1,6 @@
 <?php
 /*
- *      buang.php
+ *      function.php
  *      
  *      Copyright 2011 Indra Sutriadi Pipii <indra@sutriadi.web.id>
  *      
@@ -20,8 +20,54 @@
  *      MA 02110-1301, USA.
  */
 
-if (!defined('MODULES_WEB_ROOT_DIR')) {
-	exit();
-}
+	function bulan($m)
+	{
+		return __(date('F', mktime(0, 0, 0, $b, 1, 0));
+	}
 
-variable_del('smember_cert_conf');
+	function romanNumerals($num) 
+	{
+		/**
+		 *
+		 * @create a roman numeral from a number
+		 *
+		 * @param int $num
+		 *
+		 * @return string
+		 *
+		 */
+		$n = intval($num);
+		$res = '';
+		
+		/*** roman_numerals array  ***/
+		$roman_numerals = array(
+			'M'  => 1000,
+			'CM' => 900,
+			'D'  => 500,
+			'CD' => 400,
+			'C'  => 100,
+			'XC' => 90,
+			'L'  => 50,
+			'XL' => 40,
+			'X'  => 10,
+			'IX' => 9,
+			'V'  => 5,
+			'IV' => 4,
+			'I'  => 1
+		);
+	 
+		foreach ($roman_numerals as $roman => $number) 
+		{
+			/*** divide to get  matches ***/
+			$matches = intval($n / $number);
+	 
+			/*** assign the roman char * $matches ***/
+			$res .= str_repeat($roman, $matches);
+	 
+			/*** substract from the number ***/
+			$n = $n % $number;
+		}
+	 
+		/*** return the res ***/
+		return $res;
+    }

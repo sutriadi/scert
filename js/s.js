@@ -1,6 +1,6 @@
-//      data.js
+//      s.js
 //      
-//      Copyright 2011 Indra Sutriadi Pipii <indra.sutriadi@gmail.com>
+//      Copyright 2011 Indra Sutriadi Pipii <indra@sutriadi.web.id>
 //      
 //      This program is free software; you can redistribute it and/or modify
 //      it under the terms of the GNU General Public License as published by
@@ -130,101 +130,18 @@
 	}
 
 	$(document).ready(function() {
-		$('#formulir').submit( function() {
-			var df=document.formulir.dofirst
-			if (df.selectedIndex!=0) {
-				$("#validateTips").text("Yakin akan melakukan "+df.options[df.selectedIndex].text).effect("highlight", {}, 1500);
-				$('#dialog').dialog("option", "buttons", {
-					OK: function() {
-						var sData = $('input', oTable.fnGetNodes()).serialize();
-						document.formulir.submit();
-						document.formulir.dofirst.selectedIndex=0;
-						chform('', '');
-						$(this).dialog('close');
-					}
-				}),
-				$('#dialog').dialog('open');
-			}
-			return false;
-		} );
-		$("#card_conf_accordion, #cert_conf_accordion").accordion({
-			autoHeight: false,
-			collapsible: true,
-			header: "h3"
-		});
-		var dialog_conf = {
-			bgiframe: true,
-			autoOpen: false,
-			modal: true,
-			height: "400",
-			width: "600",
-			buttons: {
-				Cancel: function() {
-					$(this).dialog('close');
-				}
-			},
-		}
-		var cert_conf = {
-			buttons: {
-				OK: function() {
-					$.post(
-						"./php/setup.php?conf=cert",
-						$('form[name="cert_conf_form"]').serializeArray(),
-						function(data){
-							$("#validateTips").text("Data sudah disimpan!").effect("highlight", {}, 1500);
-							$('#dialog').dialog("option", "buttons", {"OK": function() { $(this).dialog("close"); } } );
-							$('#dialog').dialog('open');
-						}
-					);
-					$(this).dialog('close');
-				},
-			},
-		}
-		var card_conf = {
-			buttons: {
-				OK: function() {
-					$.post(
-						"./php/setup.php?conf=card",
-						$('form[name="card_conf_form"]').serializeArray(),
-						function(data){
-							alert(data.track);
-							$("#validateTips").text("Data sudah disimpan!").effect("highlight", {}, 1500);
-							$('#dialog').dialog("option", "buttons", {"OK": function() { $(this).dialog("close"); } } );
-							$('#dialog').dialog('open');
-						},
-						"json"
-					);
-					$(this).dialog('close');
-				},
-			},
-		}
-		$.extend(true, cert_conf, dialog_conf);
-		$.extend(true, card_conf, dialog_conf);
-		$("#cert_conf").dialog(eval(cert_conf));
-		$("#card_conf").dialog(eval(card_conf));
-		$("#dialog").dialog({
-			bgiframe: true,
-			autoOpen: false,
-			modal: true,
-			buttons: {
-				Cancel: function() {
-					$(this).dialog('close');
-				},
-			},
-		});
-
-		$('#tutup').click(function() { window.close() });
-		$('#reload').click(function() { window.location.reload() });
+		eval($('#module').val());
 		
-		$('button').button();
-		$('#to-conf-card').button().click(function() {
-			$('#card_conf').dialog("open");
+		$('#btnSubmit').click(function() {
+			if($('input[name="member[]"]').serializeArray().length!=0)
+				document.formulir.submit();
+			else{
+				$('#validateTips').text('No member(s) selected!');
+				$('#dialog').dialog("open");
+			}
 		});
-		$('#to-conf-cert').button().click(function() {
-			$('#cert_conf').dialog("open");
-		});
-
-		oTable=$('#members').dataTable( {
+		
+		var jsDef = {
 			"bProcessing": true,
 			"bServerSide": true,
 			"bAutoWidth": false,
@@ -232,21 +149,67 @@
 			"bFilter": true,
 			"aLengthMenu": [[5, 10, 20, 30, 40, 50], [5, 10, 20, 30, 40, 50]],
 			"sPaginationType": "full_numbers",
-			"sAjaxSource": "./php/processing.php",
+			"sAjaxSource": "../../library/dataTables/php/processing.php?plugin=scert&table=scert",
 			"fnServerData": fnDataTablesPipeline,
-			"aoColumns": [
-				{ "sClass": "center", "bSortable": false },
-				null,
-				null,
-				null,
-				null,
-				null,
-			],
 			"sScrollY": "200px",
 			"oLanguage": {
 				"sSearch": "Search all:"
 			}
-		} );
+		};
+		
+		$.extend(true, jsDef, phpDef);
+
+		oTable=$('#members').dataTable( jsDef );
+		
+		$('#tabular').tabs({
+			ajaxOptions: {
+				error: function( xhr, status, index, anchor ) {
+					$( anchor.hash ).html(
+						"Couldn't load this tab. We'll try to fix this as soon as possible. " +
+						"If this wouldn't be a demo." );
+				}
+			}
+		});
+		
+		$('#accordion').accordion({
+			autoHeight: false,
+			collapsible: true,
+			header: "h3"
+		});
+		
+		var default_dialog = {
+			'autoOpen': false,
+			'modal': true,
+		}
+		
+		var information_dialog = {
+			buttons: {
+				'OK': function() {
+					$(this).dialog("close");
+				}
+			}
+		}
+		
+		$.extend(true, information_dialog, default_dialog);
+		
+		$('#dialog').dialog(eval(information_dialog));
+		$('#quick_options').dialog(default_dialog);
+		$('#field_label').dialog(default_dialog);
+		$('#field_sortable').dialog(default_dialog);
+		
+		$('button').button();
+		
+		$('#btnQ').click(function() {
+			$('#quick_options').dialog("open");
+		});
+		
+		$('#btnS').click(function() {
+			alert("Not implemented");
+		});
+		
+		$('#btnO').click(function() {
+			alert("Not implemented");
+		});
 
 		$("tfoot input").keyup( function () {
 			/* Filter on the column (the index) of this element */
@@ -277,44 +240,23 @@
 			}
 		} );
 
+		/* untuk ngetes doang */
+		//~ $("#ngetes").click( function() {
+			//~ $.get("../../library/dataTables/php/processing.php?plugin=smember&table=smember", {},
+			   //~ function(data){
+				 //~ alert(data);
+			   //~ }, "html"
+			//~ );
+		//~ });
+
 	} );
-
-	/*** theme function ***/
-
-	var fileadded=''
-
-	function reload(css,dir)
-	{
-		if(fileadded.length!=0)
-			remove()
-		if(fileadded!=css){
-			var filename=dir+css+"/jquery-ui-1.8.9.custom.css"
-			var fileref=document.createElement("link")
-			fileref.setAttribute("rel", "stylesheet")
-			fileref.setAttribute("type", "text/css")
-			fileref.setAttribute("href", filename)
-			document.getElementsByTagName("head")[0].appendChild(fileref)
-			fileadded=css
-			dir=dir
-		}
-	}
-
-	function remove()
-	{
-		var filename=fileadded
-		var targetattr='href'
-		var allsuspects=document.getElementsByTagName('link')
-		for(var i=allsuspects.length;i>=0;i--){
-			if(allsuspects[i]&&allsuspects[i].getAttribute(targetattr)!=null&&allsuspects[i].getAttribute(targetattr).indexOf(filename)!=-1)
-				allsuspects[i].parentNode.removeChild(allsuspects[i])
-		}
-	}
 
 	/*** some addition function ***/
 	
-	function chform(target, action)
+	function chtarget(target, action)
 	{
 		var f=document.formulir
+		
 		f.target=target
 		f.action=action
 	}
@@ -322,30 +264,33 @@
 	function allcheck(t)
 	{
 		f=t.form
-		cb=f.elements['members[]']
-		for(n=0;n<cb.length;n++)
-			cb[n].checked=true
+		cb=f.elements['member[]']
+		if(cb){
+			for(n=0;n<cb.length;n++)
+				cb[n].checked=true
+		}
 	}
 	
 	function alluncheck(t)
 	{
 		f=t.form
-		cb=f.elements['members[]']
-		for(n=0;n<cb.length;n++)
-			cb[n].checked=false
+		cb=f.elements['member[]']
+		if(cb){
+			for(n=0;n<cb.length;n++)
+				cb[n].checked=false
+		}
 	}
 	
 	function invertcheck(t)
 	{
 		f=t.form
-		cb=f.elements['members[]']
-		for(n=0;n<cb.length;n++)
-			cb[n].checked=cb[n].checked==true?false:true
+		cb=f.elements['member[]']
+		if(cb){
+			for(n=0;n<cb.length;n++)
+				cb[n].checked=cb[n].checked==true?false:true
+		}
 	}
-	
-	function chtheme(t)
-	{
-		s=t.selectedIndex
-		if(s!=0)
-			alert('No theme!')
+
+	Drupal.behaviors.scert_Style = function (context) {
+		//~ $("input").addClass("ui-widget ui-state-default ui-corner-all");
 	}

@@ -1,0 +1,71 @@
+/*
+ *      s.css
+ *      
+ *      Copyright 2011 Indra Sutriadi Pipii <indra@sutriadi.web.id>
+ *      
+ *      This program is free software; you can redistribute it and/or modify
+ *      it under the terms of the GNU General Public License as published by
+ *      the Free Software Foundation; either version 2 of the License, or
+ *      (at your option) any later version.
+ *      
+ *      This program is distributed in the hope that it will be useful,
+ *      but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *      GNU General Public License for more details.
+ *      
+ *      You should have received a copy of the GNU General Public License
+ *      along with this program; if not, write to the Free Software
+ *      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ *      MA 02110-1301, USA.
+ */
+
+body {
+	font: 80% "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
+	margin: 0;
+	padding: 0;
+	color: #333;
+	background-color: #fff;
+}
+
+div#container {
+	width: 800px;
+	margin: 0 auto;
+}
+
+div#menubar {
+	padding: 10px;
+}
+
+div#buttonbar {
+	display: block;
+	margin-top: 10px;
+}
+
+div#buttonbar select {
+	padding: 5px 3px;
+}
+
+div#settings p {
+	clear: both;
+}
+
+p label {
+	width: 150px;
+	float: left;
+	display: inline;
+	cursor: pointer;
+	cursor: hand;
+}
+
+p label.l120 {
+	width: 120px;
+}
+
+p.left {
+	margin-right: 50px;
+	float: left;
+}
+
+p.clear {
+	clear: both;
+}

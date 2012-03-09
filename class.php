@@ -1,8 +1,8 @@
 <?php
 /*
- *      function.php
+ *      class.php
  *      
- *      Copyright 2011 Indra Sutriadi Pipii <indra.sutriadi@gmail.com>
+ *      Copyright 2011 Indra Sutriadi Pipii <indra@sutriadi.web.id>
  *      
  *      This program is free software; you can redistribute it and/or modify
  *      it under the terms of the GNU General Public License as published by
@@ -20,7 +20,50 @@
  *      MA 02110-1301, USA.
  */
 
-	if ( ! defined('SENAYAN_BASE_DIR')) { exit(); }
-	if (!$can_read)
-		die('<div class="errorBox">You dont have enough privileges to view this section</div>');
+class Cert
+{
+	public $conf = array();
+	
+	function __construct()
+	{
+		$this->conf = (object) $conf;
+	}
+	
+	protected function encpicture($file)
+	{
+		$file = "../../spatch/images/logos/$file";
+		if (file_exists($file))
+		{
+			$contents = file_get_contents($file);
+			$encoded = trim(base64_encode($contents));
+		} else $encoded = '';
+		return $encoded;
+	}
 
+	
+	protected function cert_fields()
+	{
+	}
+	
+	protected function cert_stamp()
+	{
+	}
+	
+	protected function cert_body()
+	{
+	}
+	
+	protected function cert_header()
+	{
+		
+	}
+	
+	protected function cert_number()
+	{
+	}
+	
+	protected function create()
+	{
+		
+	}
+}

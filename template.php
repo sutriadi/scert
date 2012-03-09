@@ -2,7 +2,7 @@
 /*
  *      template.php
  *      
- *      Copyright 2011 Indra Sutriadi Pipii <indra.sutriadi@gmail.com>
+ *      Copyright 2011 Indra Sutriadi Pipii <indra@sutriadi.web.id>
  *      
  *      This program is free software; you can redistribute it and/or modify
  *      it under the terms of the GNU General Public License as published by
@@ -21,447 +21,334 @@
  */
 
 if ( ! defined('SENAYAN_BASE_DIR')) { exit(); }
-if (!$can_read)
-	die('<div class="errorBox">You dont have enough privileges to view this section</div>');
+if ( ! $can_read)
+	die(sprintf('<div class="errorBox">%s</div>', __('You dont have enough privileges to view this section')));
 
-$card_conf = json_decode(variable_get('smember_card_conf'));
-$cert_conf = json_decode(variable_get('smember_cert_conf'));
+// mengambil konfigurasi kartu
+$s_global = variable_get('scert_global', '', 'serial', true);
+
+// mengambil daftar nama kolom tabel member, dan urutan kolom
+$base_cols_name = base_cols_name('member');
+$fcols = cols_get('scert');
+
+$dtables = table_render('scert');
+extract($dtables);
+
 ?>
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-	<title><?php echo $info['name'];?> v <?php echo $info['version'];?></title>
+	<title><?php echo $name;?> <?php echo $version;?></title>
 	<style type="text/css" title="currentStyle">
-		@import "./css/demo_page.css";
-		@import "./css/demo_table_jui.css";
-		@import "./css/smember.css";
+		@import "../../library/dataTables/css/demo_table_jui.css";
+		@import "../../<?php echo css_get();?>";
+		@import "./css/s.css";
 		@import "./css/custom.css";
 	</style>
-	<script type="text/javascript" language="javascript" src="./js/jquery.min.js"></script>
-	<script type="text/javascript" language="javascript" src="./js/jquery-ui.custom.min.js"></script>
-	<script type="text/javascript" language="javascript" src="./js/jquery.dataTables.js"></script>
-	<script type="text/javascript" charset="utf-8" language="javascript" src="./js/scert.js"></script>
+	<script type="text/javascript">
+		<?php if (isset($php_js)) echo $php_js;?>
+	</script>
+	<script type="text/javascript" language="javascript" src="../../library/js/jquery.min.js"></script>
+	<script type="text/javascript" language="javascript" src="../../library/js/drupal.js"></script>
+	<script type="text/javascript" language="javascript" src="../../library/ui/js/jquery-ui.custom.min.js"></script>
+	<script type="text/javascript" language="javascript" src="../../library/dataTables/js/jquery.dataTables.js"></script>
+	<script type="text/javascript" charset="utf-8" language="javascript" src="./js/s.js"></script>
 	<script type="text/javascript" charset="utf-8" language="javascript" src="./js/custom.js"></script>
 
 </head>
-<body id="dt_example" onload="<?php echo $onload;?>">
+<body>
 	<div id="container">
-		<div style="float:right;">
-			<label for="theme"><u>T</u>heme:</label>
-			<?php echo $optstyles;?>
+		<div id="menubar" class="ui-widget-header">
+			<span>
+				<?php echo $name;?>
+				<?php echo $version;?>
+			<span>
+			<div id="buttonbar">
+				<button id="btnQ"><?php echo __('Quick Options');?></button>
+			</div>
 		</div>
-		<h1><?php echo $info['name'];?> v <?php echo $info['version'];?></h1>
-		<div id="demo">
-			<form id="formulir" name="formulir" target="" action="" method="POST">
-				<div style="text-align:left; padding-bottom: 1em; float: left;" class="ui-widget">
-					<label for="dofirst"><u>G</u>o:</label>
-					<select id="dofirst" name="dofirst" accesskey="G" onchange="eval(this.value);" class="ui-state-default ui-corner-all">
-						<option>-- Mau diapakan? --</option>
-						<?php echo $option;?>
-					</select>
+		<div id="tabular">
+			<ul>
+				<li><a href="#frontpage"><?php echo __('Home');?></a></li>
+				<li><a href="#settings"><?php echo __('Settings');?></a></li>
+				<li><a href="#fields"><?php echo __('Fields');?></a></li>
+				<li><a href="#file"><?php echo __('File');?></a></li>
+			</ul>
+			<div id="frontpage">
+				<div id="buttonbar">
+					<div style="width: 40%; display: inline; ">
+						<!--button id="btnO" accesskey="O" title="Alt+Shift+O" ><?php echo __('Options');?></button-->
+						<label for="module">Module :</label>
+						<select id="module" accesskey="M" title="Alt+Shift+M" onchange="eval(this.value);">
+							<?php echo $module_opt;?>
+						</select>
+					</div>
+					<div style="text-align: right; width: 40%; display: inline; float: right; ">
+						<button id="btnSubmit" accesskey="S" title="Alt+Shift+S"><?php echo __('Submit');?></button>
+					</div>
 				</div>
-				<div style="text-align:right; padding-bottom:1em;" class="ui-widget">
-					<button type="button" id="to-conf-card" title="Alt+Shift+K" accesskey="K">
-						Setup <u>K</u>artu
-					</button>
-					<button type="button" id="to-conf-cert" title="Alt+Shift+K" accesskey="K">
-						Setup Sur<u>a</u>t
-					</button>
-					<button type="submit" id="kirim" name="kirim" title="Alt+Shift+S" accesskey="S" class="ui-button ui-button-text ui-state-default ui-corner-all">
-						<u>S</u>ubmit form
-					</button>
+				<form id="formulir" name="formulir" target="cert_result" action="" method="POST">
+					<div style="margin: 5px 0px;" width="100%">
+						<button type="button" onclick="allcheck(this);" accesskey="A" title="Alt+Shift+A" class="ui-button ui-state-default ui-corner-all"><?php echo __('Check <u>A</u>ll');?></button>
+						<button type="button" onclick="alluncheck(this);" accesskey="U" title="Alt+Shift+U" class="ui-button ui-state-default ui-corner-all"><?php echo __('<u>U</u>ncheck All');?></button>
+						<button type="button" onclick="invertcheck(this);" accesskey="I" title="Alt+Shift+I" class="ui-button ui-state-default ui-corner-all"><?php echo __('Check <u>I</u>nvert');?></button>
+					</div>
+					<table cellpadding="0" cellspacing="0" border="0" class="display" id="members">
+						<?php echo $thead;?>
+						<?php echo $tbody;?>
+						<?php echo $tfoot;?>
+					</table>
+					<div style="margin: 5px 0px;" width="100%">
+						<button type="button" onclick="allcheck(this);" title="Alt+Shift+A" class="ui-button ui-state-default ui-corner-all"><?php echo __('Check <u>A</u>ll');?></button>
+						<button type="button" onclick="alluncheck(this);" title="Alt+Shift+U" class="ui-button ui-state-default ui-corner-all"><?php echo __('<u>U</u>ncheck All');?></button>
+						<button type="button" onclick="invertcheck(this);" title="Alt+Shift+I" class="ui-button ui-state-default ui-corner-all"><?php echo __('Check <u>I</u>nvert');?></button>
+					</div>
+				</form>
+			</div>
+			<div id="settings">
+				<div id="accordion">
+					<div>
+						<h3><a href="#"><?php echo __('General');?></a></h3>
+						<div>
+							<p>
+								<label for="cert_library_name" class=""><?php echo __('Library Name');?>:</label>
+								<input type="text" id="cert_library_name" name="cert_library_name" size="50" value="<?php echo $s_global->cert_library_name;?>" />
+							</p>
+							<p>
+								<label for="cert_library_addr" class=""><?php echo __('Library Address');?>:</label>
+								<input type="text" id="cert_library_addr" name="cert_library_addr" size="50" value="<?php echo $s_global->cert_library_addr;?>" />
+							</p>
+							<p>
+								<label for="cert_title" class=""><?php echo __('Certificate Title');?>:</label>
+								<input type="text" id="cert_title" name="cert_title" size="50" value="<?php echo $s_global->cert_title;?>" />
+							</p>
+							<p>
+								<label for="cert_purpose" class=""><?php echo __('Certificate Purpose');?>:</label>
+								<input type="text" id="cert_purpose" name="cert_purpose" size="50" value="<?php echo $s_global->cert_purpose;?>" />
+							</p>
+						</div>
+					</div>
+					<div>
+						<h3><a href="#"><?php echo __('Database');?></a></h3>
+						<div>
+							<p>
+								<label><?php echo __('Serial Data Column');?>:</label>
+							</p>
+							<p>
+								<label><?php echo __('Custom Fields Column');?>:</label>
+							</p>
+						</div>
+					</div>
+					<div>
+						<h3><a href="#"><?php echo __('Serial Number');?></a></h3>
+						<div>
+							<p>
+								<label for="cert_serial_num_label" class=""><?php echo __('Label');?>:</label>
+								<input type="text" id="cert_serial_num_label" name="cert_serial_num_label" size="30" value="<?php echo $s_global->cert_serial_num_label;?>" />
+							</p>
+							<p>
+								<label for="cert_serial_num_separator" class=""><?php echo __('Separator');?>:</label>
+								<input type="text" id="cert_serial_num_separator" name="cert_serial_num_separator" size="1" maxlength="1" value="<?php echo $s_global->cert_serial_num_separator;?>" />
+							</p>
+							<p>
+								<label for="cert_serial_num_syntax" class=""><?php echo __('Syntax');?>:</label>
+								<textarea cols="30" rows="5"><?php echo $s_global->cert_serial_num_syntax;?></textarea>
+							</p>
+						</div>
+					</div>
+					<div>
+						<h3><a href="#"><?php echo __('Stamp Area');?></a></h3>
+						<div>
+							<p>
+								<label for="stamp_location" class=""><?php echo __('Location');?>:</label>
+								<input type="text" id="stamp_location" name="stamp_location" size="30" value="<?php echo $s_global->stamp_location;?>" />
+							</p>
+							<p>
+								<label for="stamp_word_to_know" class=""><?php echo __('Word To Know');?>:</label>
+								<input type="text" id="stamp_word_to_know" name="stamp_word_to_know" size="30" value="<?php echo $s_global->stamp_word_to_know;?>" />
+							</p>
+							<p>
+								<label for="stamp_officer_level" class=""><?php echo __('Officer Level');?>:</label>
+								<input type="text" id="stamp_officer_level" name="stamp_officer_level" size="30" value="<?php echo $s_global->stamp_officer_level;?>" />
+							</p>
+							<p>
+								<label for="stamp_officer_name" class=""><?php echo __('Officer Name');?>:</label>
+								<input type="text" id="stamp_officer_name" name="stamp_officer_name" size="50" value="<?php echo $s_global->stamp_officer_name;?>" />
+							</p>
+							<p>
+								<label for="stamp_officer_id_number" class=""><?php echo __('Officer ID Number');?>:</label>
+								<input type="text" id="stamp_officer_id_number" name="stamp_officer_id_number" size="30" value="<?php echo $s_global->stamp_officer_id_number;?>" />
+							</p>
+							<p>
+								<label for="stamp_id_prefix" class=""><?php echo __('ID Prefix');?>:</label>
+								<input type="text" id="stamp_id_prefix" name="stamp_id_prefix" size="30" value="<?php echo $s_global->stamp_id_prefix;?>" />
+							</p>
+						</div>
+					</div>
+					<div>
+						<h3><a href="#"><?php echo __('Paragraph');?></a></h3>
+						<div>
+							<p>
+								<label for="paragraph_opening" class=""><?php echo __('Opening paragraph');?>:</label>
+								<textarea id="paragraph_opening" name="paragraph_opening" cols="50" rows="3"><?php echo $s_global->paragraph_opening;?></textarea>
+							</p>
+							<p>
+								<label for="paragraph_statement" class=""><?php echo __('Statement paragraph');?>:</label>
+								<textarea id="paragraph_statement" name="paragraph_statement" cols="50" rows="3"><?php echo $s_global->paragraph_statement;?></textarea>
+							</p>
+							<p>
+								<label for="paragraph_purpose" class=""><?php echo __('Purpose paragraph');?>:</label>
+								<textarea id="paragraph_purpose" name="paragraph_purpose" cols="50" rows="3"><?php echo $s_global->paragraph_purpose;?></textarea>
+							</p>
+							<p>
+								<label for="paragraph_closing" class=""><?php echo __('Closing paragraph');?>:</label>
+								<textarea id="paragraph_closing" name="paragraph_closing" cols="50" rows="3"><?php echo $s_global->paragraph_closing;?></textarea>
+							</p>
+						</div>
+					</div>
+					<div>
+						<h3><a href="#"><?php echo __('Fields');?></a></h3>
+						<p>
+							<button id="open_fields_tab_button"><?php echo __('Open Fields Tab');?></button>
+						</p>
+					</div>
+					<div>
+						<h3><a href="#"><?php echo __('Custom Fields');?></a></h3>
+						<div>
+							<p>
+								<label for="custom_enabled" class=""><?php echo __('Enable Custom Fields?');?></label>
+								<input type="checkbox" id="custom_enabled" name="custom_enabled" />
+								<label style="float: none;" for="custom_enabled"><?php echo __('Yes');?></label>
+							</p>
+							<p>
+								<label for="custom_string_begin" class=""><?php echo __('String Begin');?>:</label>
+								<input type="text" id="custom_string_begin" name="custom_string_begin" value="<?php echo $s_global->custom_string_begin;?>" />
+							</p>
+							<p>
+								<label for="custom_string_sep" class=""><?php echo __('String Separator');?>:</label>
+								<input type="text" id="custom_string_sep" name="custom_string_sep" value="<?php echo $s_global->custom_string_sep;?>" />
+							</p>
+							<p>
+								<label for="custom_string_label" class=""><?php echo __('String Label');?>:</label>
+								<input type="text" id="custom_string_label" name="custom_string_label" value="<?php echo $s_global->custom_string_label;?>" />
+							</p>
+							<p>
+								<label for="custom_string_value" class=""><?php echo __('String Value');?>:</label>
+								<input type="text" id="custom_string_value" name="custom_string_value" value="<?php echo $s_global->custom_string_value;?>" />
+							</p>
+						</div>
+					</div>
+					<div>
+						<h3><a href="#"><?php echo __('CSV File');?></a></h3>
+						<div>
+							<p>
+								<label><?php echo __('Filename');?>:</label>
+							</p>
+							<p>
+								<label><?php echo __('Maximum Filesize');?>:</label>
+							</p>
+							<p>
+								<label><?php echo __('Column Separator');?>:</label>
+							</p>
+							<p>
+								<label><?php echo __('Member ID Label');?>:</label>
+							</p>
+							<p>
+								<label><?php echo __('Fields');?>:</label>
+							</p>
+							<p>
+								<label><?php echo __('Custom Fields');?>:</label>
+							</p>
+							<p>
+								<label><?php echo __('Ordered');?>:</label>
+							</p>
+						</div>
+					</div>
+					<div>
+						<h3><a href="#"><?php echo __('Replacement String');?></a></h3>
+						<div>
+							<p>%surat_nama_perpustakaan = <?php echo __('Library Name');?></p>
+							<p>%surat_keperluan = <?php echo __('Certificate Purpose');?></p>
+							<p>%bulan = <?php echo __('Month');?></p>
+							<p>%tahun = <?php echo __('Year');?></p>
+						</div>
+					</div>
+					<p>
+						<button id="settings_submit"><?php echo __('Save');?></button>
+					</p>
 				</div>
-				<div style="margin: 5px 0px;" width="100%">
-					<button type="button" onclick="allcheck(this);" id="btn1" accesskey="A" title="Alt+Shift+A" class="ui-button ui-state-default ui-corner-all">Check <u>A</u>ll</button>
-					<button type="button" onclick="alluncheck(this);" id="btn2" accesskey="U" title="Alt+Shift+U" class="ui-button ui-state-default ui-corner-all"><u>U</u>ncheck All</button>
-					<button type="button" onclick="invertcheck(this);" id="btn3" accesskey="I" title="Alt+Shift+I" class="ui-button ui-state-default ui-corner-all">Check <u>I</u>nvert</button>
-				</div>
-				<table cellpadding="0" cellspacing="0" border="0" class="display" id="members">
-					<thead>
-						<tr>
-							<th colspan="6">Members Details</th>
-						</tr>
-						<tr>
-							<th width="4%"></th>
-							<th width="15%">ID</th>
-							<th width="20%">Name</th>
-							<th width="10%">Type</th>
-							<th width="30%">Institution</th>
-							<th>Email</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td colspan="5" class="dataTables_empty">Loading data from server</td>
-						</tr>
-					</tbody>
-					<tfoot>
-						<tr>
-							<th></th>
-							<th style="padding:0px;"><input value="ID" type="text" class="search_init" style="width: 90px;" /></th>
-							<th style="padding:0px;"><input value="Name" type="text" class="search_init" style="width: 115px;" /></th>
-							<th style="padding:0px;"><input value="Type" type="text" class="search_init" style="width: 60px;" /></th>
-							<th style="padding:0px;"><input value="Institution" type="text" class="search_init" style="width: 200px;" /></th>
-							<th style="padding:0px;"><input value="E-mail" type="text" class="search_init" style="width: 200px;" /></th>
-						</tr>
-					</tfoot>
-				</table>
-				<div style="margin: 5px 0px;" width="100%">
-					<button type="button" onclick="allcheck(this);" id="btn4" accesskey="A" title="Alt+Shift+A" class="ui-button ui-state-default ui-corner-all">Check <u>A</u>ll</button>
-					<button type="button" onclick="alluncheck(this);" id="btn5" accesskey="U" title="Alt+Shift+U" class="ui-button ui-state-default ui-corner-all"><u>U</u>ncheck All</button>
-					<button type="button" onclick="invertcheck(this);" id="btn6" accesskey="I" title="Alt+Shift+I" class="ui-button ui-state-default ui-corner-all">Check <u>I</u>nvert</button>
-				</div>
-			</form>
-		</div>
-		<div class="spacer"></div>
-		<div style="text-align:left; padding-bottom:1em; float: left;" class="ui-widget">
-			<button type="button" id="reload" accesskey="R" title="Alt+Shift+R" class="ui-button ui-state-default ui-corner-all">
-				<u>R</u>eload
-			</button>
-		</div>
-		<div style="text-align:right; padding-bottom:1em;" class="ui-widget">
-			<button type="button" id="tutup" accesskey="X" title="Alt+Shift+X" class="ui-button ui-state-default ui-corner-all">
-				E<u>x</u>it
-			</button>
-		</div>
-		<address style="text-align: center;">
-			Copyright &copy; 1431-1432 H / 2010-2011 M by Indra Sutriadi Pipii.<br />
-			Build with jQuery-UI + dataTables plugin.
-		</address>
-	</div>
-	<div id="dialog" title="Information">
-		<p id="validateTips"></p>
-	</div>
-
+			</div>
+			<div id="fields">
+				<div>
 <?php
-	$encoding = array(
-		'128' => '128', '128b' => '128B',
-		'128c' => '128C', 'isbn' => 'ISBN',
-		'39' => '39', 'cbr' => 'Codabar',
-		'msi' => 'MSI', 'pls' => 'Plessey',
-		'i25' => 'Interleaved 2 of 5',
-		'upc' => '12 Digit EAN' , 'ean' => '8, 13 Digit EAN'
-	);
-	$options_encoding = '';
-	foreach ($encoding as $key => $val)
-	{
-		$selected = (isset($card_conf->encbar) && $key == $card_conf->encbar) ? "selected" : "";
-		$options_encoding .= "<option $selected value=\"$key\">$val</option>";
-	}
-	$date_function = array('static', 'dynamic');
-	$options_date_function = '';
-	foreach ($date_function as $f)
-	{
-		$selected = (isset($card_conf->tanggal_fungsi) && $f == $card_conf->tanggal_fungsi) ? "selected" : "";
-		$options_date_function .= "<option $selected value=\"$f\">$f</option>";
-	}
-	
-	$mfields = array(
-		'member_id', 'member_name', 'member_type_id',
-		'member_address', 'inst_name', 'register_date',
-		'expire_date', 'gender', 'member_email', 'member_phone'
-	);
-	$options_fields = '';
-	$fields = isset($card_conf->fields) ? (array) $card_conf->fields : array();
-	foreach ($mfields as $mfield)
-	{
-		$count_fields = (count($fields) > 0) ? true : false;
-		$selected = ($count_fields === true && in_array($mfield, $fields)) ? "selected" : "";
-		$options_fields .= "<option $selected value=\"$mfield\">$mfield</option>";
-	}
-	
-	$options_perhal = '';
-	for ($x = 1; $x <= 50; $x++)
-	{
-		$selected = (isset($card_conf->perhal) && $x == $card_conf->perhal) ? "selected" : "";
-		$options_perhal .= "<option $selected value=\"$x\">$x</option>";
-	}
-	$checked_stempel = (isset($card_conf->stempel) && $card_conf->stempel == true) ? "checked" : "";
-	$checked_kop = (isset($card_conf->kop) && $card_conf->kop == true) ? "checked" : "";
-	$checked_pasfoto = (isset($card_conf->pasfoto) && $card_conf->pasfoto == true) ? "checked" : "";
-	$checked_logo = (isset($card_conf->logo) && $card_conf->logo == true) ? "checked" : "";
-	$checked_kodebar = (isset($card_conf->kodebar) && $card_conf->kodebar == true) ? "checked" : "";
-	$checked_ganda = (isset($card_conf->ganda) && $card_conf->ganda == true) ? "checked" : "";
-	$checked_gambar_stempel = (isset($card_conf->gambar_stempel) && $card_conf->gambar_stempel == true) ? "checked" : "";
-	$checked_logo_ganda = (isset($card_conf->logo_ganda) && $card_conf->logo_ganda == true) ? "checked" : "";
-	$checked_kop_ganda = (isset($card_conf->kop_ganda) && $card_conf->kop_ganda == true) ? "checked" : "";
-	$checked_stempel_ganda = (isset($card_conf->stempel_ganda) && $card_conf->stempel_ganda == true) ? "checked" : "";
+	foreach ($base_cols_name as $field => $field_name):
+		$idfield = 'fields[' . $field .'][sort]';
+		$options_fields_sort = '';
+		for ($x = 0; $x <= count($base_cols_name); $x++)
+		{
+			$sort_value = 0;
+			if (isset($s_global->fields[$field]))
+			{
+				$sort_value = 1;
+				if (isset($s_global->fields[$field]['sort']))
+					$sort_value = $s_global->fields[$field]['sort'];
+			}
+			$selected = ($x == $sort_value) ? 'selected' : '';
+			$options_fields_sort .= sprintf('<option %s value="%s">%s</option>', $selected, $x, $x);
+		}
 ?>
 
-	<div id="cert_conf" title="Member Certification Configuration">
-		<form name="cert_conf_form">
-			<fieldset>
-				<div id="cert_conf_accordion">
-					<h3><a href="#">Kop Surat</a></h3>
-					<div>
-						<p>
-							<label for="surat_nama_perpustakaan" class="lblock">Nama Perpustakaan:</label>
-							<input id="surat_nama_perpustakaan" name="surat_nama_perpustakaan" type="text" size="50" value="<?php echo isset($cert_conf->surat_nama_perpustakaan) ? $cert_conf->surat_nama_perpustakaan : '';?>" />
-						</p>
-						<p>
-							<label for="surat_judul" class="lblock">Judul Keterangan:</label>
-							<input id="surat_judul" name="surat_judul" type="text" size="50" value="<?php echo isset($cert_conf->surat_judul) ? $cert_conf->surat_judul : '';?>" />
-						</p>
-						<p>
-							<label for="surat_alamat_perpustakaan" class="lblock">Alamat:</label>
-							<input id="surat_alamat_perpustakaan" name="surat_alamat_perpustakaan" type="text" size="50" value="<?php echo isset($cert_conf->surat_alamat_perpustakaan) ? $cert_conf->surat_alamat_perpustakaan : '';?>" />
-						</p>
-						<p>
-							<label for="surat_logo_perpustakaan" class="lshort">Logo:</label>
-							<input id="surat_logo_perpustakaan" name="surat_logo_perpustakaan" type="text" value="<?php echo isset($cert_conf->surat_logo_perpustakaan) ? $cert_conf->surat_logo_perpustakaan : '';?>" />
-						</p>
-					</div>
-					<h3><a href="#">Penomoran</a></h3>
-					<div>
-						<p>
-							<label for="surat_nomor_label" class="llong">Label Nomor:</label>
-							<input id="surat_nomor_label" name="surat_nomor_label" type="text" value="<?php echo isset($cert_conf->surat_nomor_label) ? $cert_conf->surat_nomor_label : '';?>" />
-						</p>
-						<p>
-							<label for="surat_nomor_kode_sep" class="llong">Pembatas Nomor:</label>
-							<input id="surat_nomor_kode_sep" name="surat_nomor_kode_sep" type="text" maxlength="1" size="1" value="<?php echo isset($cert_conf->surat_nomor_kode_sep) ? $cert_conf->surat_nomor_kode_sep : '';?>" />
-						</p>
-					</div>
-					<h3><a href="#">Kalimat</a></h3>
-					<div>
-						<p>
-							<label for="surat_kalimat_awal" class="lblock">Kalimat Awal:</label>
-							<input id="surat_kalimat_awal" name="surat_kalimat_awal" type="text" size="50" value="<?php echo isset($cert_conf->surat_kalimat_awal) ? $cert_conf->surat_kalimat_awal : '';?>" />
-						</p>
-						<p>
-							<label for="surat_kalimat_tengah" class="lblock">Kalimat Tengah:</label>
-							<input id="surat_kalimat_tengah" name="surat_kalimat_tengah" type="text" size="50" value="<?php echo isset($cert_conf->surat_kalimat_tengah) ? $cert_conf->surat_kalimat_tengah : '';?>" />
-						</p>
-						<p>
-							<label for="surat_kalimat_tengah2" class="lblock">Kalimat Tengah 2:</label>
-							<input id="surat_kalimat_tengah2" name="surat_kalimat_tengah2" type="text" size="50" value="<?php echo isset($cert_conf->surat_kalimat_tengah2) ? $cert_conf->surat_kalimat_tengah2 : '';?>" />
-						</p>
-						<p>
-							<label for="surat_kalimat_akhir" class="lblock">Kalimat Akhir:</label>
-							<input id="surat_kalimat_akhir" name="surat_kalimat_akhir" type="text" size="50" value="<?php echo isset($cert_conf->surat_kalimat_akhir) ? $cert_conf->surat_kalimat_akhir : '';?>" />
-						</p>
-						<p>
-							<label for="surat_kalimat_keperluan" class="lblock">Kalimat Keperluan:</label>
-							<input id="surat_kalimat_keperluan" name="surat_kalimat_keperluan" type="text" size="50" value="<?php echo isset($cert_conf->surat_kalimat_keperluan) ? $cert_conf->surat_kalimat_keperluan : '';?>" />
-						</p>
-					</div>
-					<h3><a href="#">Stempel</a></h3>
-					<div>
-						<p>
-							<label for="surat_lokasi" class="llong">Lokasi:</label>
-							<input id="surat_lokasi" name="surat_lokasi" type="text" value="<?php echo isset($cert_conf->surat_lokasi) ? $cert_conf->surat_lokasi : '';?>" />
-						</p>
-						<p>
-							<label for="surat_kata_mengetahui" class="llong">Label Mengetahui:</label>
-							<input id="surat_kata_mengetahui" name="surat_kata_mengetahui" type="text" value="<?php echo isset($cert_conf->surat_kata_mengetahui) ? $cert_conf->surat_kata_mengetahui : '';?>" />
-						</p>
-						<p>
-							<label for="surat_posisi_pejabat" class="llong">Jabatan:</label>
-							<input id="surat_posisi_pejabat" name="surat_posisi_pejabat" type="text" value="<?php echo isset($cert_conf->surat_posisi_pejabat) ? $cert_conf->surat_posisi_pejabat : '';?>" />
-						</p>
-						<p>
-							<label for="surat_nama_pejabat" class="llong">Nama Pejabat:</label>
-							<input id="surat_nama_pejabat" name="surat_nama_pejabat" type="text" value="<?php echo isset($cert_conf->surat_nama_pejabat) ? $cert_conf->surat_nama_pejabat : '';?>" />
-						</p>
-						<p>
-							<label for="surat_nip_pejabat" class="llong">NIP:</label>
-							<input id="surat_nip_pejabat" name="surat_nip_pejabat" type="text" value="<?php echo isset($cert_conf->surat_nip_pejabat) ? $cert_conf->surat_nip_pejabat : '';?>" />
-						</p>
-						<p>
-							<label for="surat_nip_prefix" class="llong">Label NIP:</label>
-							<input id="surat_nip_prefix" name="surat_nip_prefix" type="text" value="<?php echo isset($cert_conf->surat_nip_prefix) ? $cert_conf->surat_nip_prefix : '';?>" />
-						</p>
-					</div>
-				</div>
-			</fieldset>
-		</form>
-	</div>
+					<p class="left">
+						<label for="<?php echo $idfield;?>" class="l120"><?php echo $field_name;?>:</label>
+						<select id="<?php echo $idfield;?>" name="<?php echo $idfield;?>">
+							<?php echo $options_fields_sort;?>
+						</select>
+					</p>
+<?php
+	endforeach;
+	unset($options_fields_sort);
+?>
 
-	<div id="card_conf" title="Member Card Configuration">
-		<form name="card_conf_form">
-			<fieldset>
-				<div id="card_conf_accordion">
-					<div>
-						<h3><a href="#">Kartu</a></h3>
-						<div>
-							<p>
-								<label for="lebar" class="lshort">Lebar:</label>
-								<input id="lebar" name="lebar" maxlength="4" size="4" type="text" value="<?php echo isset($card_conf->lebar) ? $card_conf->lebar : '8.8';?>" />
-								cm
-							</p>
-							<p>
-								<label for="tinggi" class="lshort">Tinggi:</label>
-								<input id="tinggi" name="tinggi" maxlength="4" size="4" type="text" value="<?php echo isset($card_conf->tinggi) ? $card_conf->tinggi : '8.8';?>" />
-								cm
-							</p>
-							<p>
-								<label for="gaya" class="lshort">Tema:</label>
-								<input id="gaya" name="gaya" value="<?php echo isset($card_conf->gaya) ? $card_conf->gaya : 'default';?>" />
-							</p>
-						</div>
-					</div>
-					<div>
-						<h3><a href="#">Halaman</a></h3>
-						<div>
-							<p>
-								<label for="perhal" class="llong">Jumlah Kartu per Halaman:</label>
-								<select id="perhal" name="perhal">
-									<?php echo $options_perhal; ?>
-								</select>
-							</p>
-							<p>
-								<label for="kop" class="llong">Tampilkan kop?</label>
-								<input id="kop" type="checkbox" name="kop" <?php echo $checked_kop;?> /> <span>Ya!</span>
-							</p>
-							<p>
-								<label for="logo" class="llong">Tampilkan logo?</label>
-								<input id="logo" type="checkbox" name="logo" <?php echo $checked_logo;?> /> <span>Ya!</span>
-							</p>
-							<p>
-								<label for="stempel" class="llong">Tampilkan stempel?</label>
-								<input id="stempel" type="checkbox" name="stempel" <?php echo $checked_stempel;?> /> <span>Ya!</span>
-							</p>
-							<p>
-								<label for="pasfoto" class="llong">Tampilkan pasfoto?</label>
-								<input id="pasfoto" type="checkbox" name="pasfoto" <?php echo $checked_pasfoto;?> /> <span>Ya!</span>
-							</p>
-							<p>
-								<label for="kodebar" class="llong">Tampilkan barcode?</label>
-								<input id="kodebar" type="checkbox" name="kodebar" <?php echo $checked_kodebar;?> /> <span>Ya!</span>
-							</p>
-							<p>
-								<label for="ganda" class="llong">Tampilkan sisi belakang?</label>
-								<input id="ganda" type="checkbox" name="ganda" <?php echo $checked_ganda;?> /> <span>Ya!</span>
-							</p>
-						</div>
-					</div>
-					<div>
-						<h3><a href="#">Pas Foto</a></h3>
-						<div>
-							<p>
-								<label for="pasfoto_lebar" class="lshort">Lebar:</label>
-								<input id="pasfoto_lebar" name="pasfoto_lebar" maxlength="4" size="4" type="text" value="<?php echo isset($card_conf->pasfoto_lebar) ? $card_conf->pasfoto_lebar : '8.8';?>" />
-								cm
-							</p>
-							<p>
-								<label for="tinggi" class="lshort">Tinggi:</label>
-								<input id="tinggi" name="pasfoto_tinggi" maxlength="4" size="4" type="text" value="<?php echo isset($card_conf->pasfoto_tinggi) ? $card_conf->pasfoto_tinggi : '8.8';?>" />
-								cm
-							</p>
-						</div>
-					</div>
-					<div>
-						<h3><a href="#">Kop</a></h3>
-						<div>
-							<p>
-								<label for="nama_perpustakaan" class="llong">Nama Perpustakaan:</label>
-								<input id="nama_perpustakaan" name="nama_perpustakaan" type="text" value="<?php echo isset($card_conf->nama_perpustakaan) ? $card_conf->nama_perpustakaan : '';?>" />
-							</p>
-							<p>
-								<label for="alamat_perpustakaan" class="llong">Alamat Perpustakaan:</label>
-								<input id="alamat_perpustakaan" name="alamat_perpustakaan" type="text" value="<?php echo isset($card_conf->alamat_perpustakaan) ? $card_conf->alamat_perpustakaan : '';?>" />
-							</p>
-						</div>
-					</div>
-					<div>
-						<h3><a href="#">Logo</a></h3>
-						<div>
-							<p>
-								<label for="path_logo" class="lmid">Berkas Logo:</label>
-								<input type="path_logo" name="path_logo" type="text" value="<?php echo isset($card_conf->path_logo) ? $card_conf->path_logo : '';?>" />
-							</p>
-						</div>
-					</div>
-					<div>
-						<h3><a href="#">Barcode</a></h3>
-						<div>
-							<p>
-								<label for="encbar" class="lmid">Encoding:</label>
-								<select name="encbar">
-									<option>-- Pilih --</option>
-									<?php echo $options_encoding; ?>
-								</select>
-							</p>
-						</div>
-					</div>
-					<div>
-						<h3><a href="#">Stempel</a></h3>
-						<div>
-							<p>
-								<label for="lokasi_stempel" class="llong">Lokasi:</label>
-								<input id="lokasi_stempel" name="lokasi_stempel" type="text" value="<?php echo isset($card_conf->lokasi_stempel) ? $card_conf->lokasi_stempel : '';?>" />
-							</p>
-							<p>
-								<label for="pejabat_stempel" class="llong">Nama Pejabat:</label>
-								<input id="pejabat_stempel" name="pejabat_stempel" type="text" value="<?php echo isset($card_conf->pejabat_stempel) ? $card_conf->pejabat_stempel : '';?>" />
-							</p>
-							<p>
-								<label for="nip_prefix_stempel" class="llong">NIP. Prefix:</label>
-								<input id="nip_prefix_stempel" name="nip_prefix_stempel" type="text" value="<?php echo isset($card_conf->nip_prefix_stempel) ? $card_conf->nip_prefix_stempel : '';?>" />
-							</p>
-							<p>
-								<label for="nip_pejabat_stempel" class="llong">Angka NIP:</label>
-								<input id="nip_pejabat_stempel" name="nip_pejabat_stempel" type="text" value="<?php echo isset($card_conf->nip_pejabat_stempel) ? $card_conf->nip_pejabat_stempel : '';?>" />
-							</p>
-							<p>
-								<label for="jabatan_stempel" class="llong">Jabatan:</label>
-								<input id="jabatan_stempel" name="jabatan_stempel" type="text" value="<?php echo isset($card_conf->jabatan_stempel) ? $card_conf->jabatan_stempel : '';?>" />
-							</p>
-							<p>
-								<label for="gambar_stempel" class="llong">Tampilkan cap?</label>
-								<input id="gambar_stempel" name="gambar_stempel" type="checkbox" <?php echo $checked_gambar_stempel;?> /> <span>Ya!</span>
-							</p>
-							<p>
-								<label for="path_stempel" class="llong">Berkas Cap:</label>
-								<input id="path_stempel" name="path_stempel" type="text" value="<?php echo isset($card_conf->path_stempel) ? $card_conf->path_stempel : '';?>" />
-							</p>
-							<p>
-								<label for="tanggal_stempel" class="llong">Tanggal:</label>
-								<input id="tanggal_stempel" name="tanggal_stempel" type="text" value="<?php echo isset($card_conf->tanggal_stempel) ? $card_conf->tanggal_stempel : '';?>" />
-							</p>
-							<p>
-								<label for="tanggal_fungsi" class="llong">Fungsi Tanggal:</label>
-								<select id="tanggal_fungsi" name="tanggal_fungsi">
-									<option>-- Pilih --</option>
-									<?php echo $options_date_function; ?>
-								</select>
-							</p>
-						</div>
-					</div>
-					<div>
-						<h3><a href="#">Baris</a></h3>
-						<div>
-							<p>
-								<label for="fields" class="lshort">Pilih:</label>
-								<select multiple id="fields" name="fields[]"><?php echo $options_fields;?></select>
-							</p>
-						</div>
-					</div>
-					<div>
-						<h3><a href="#">Bagian Belakang</a></h3>
-						<div>
-							<p>
-								<label for="isiganda" class="lblock">Isi:</label>
-								<textarea id="isiganda" cols="50" rows="6" name="isiganda"><?php echo isset($card_conf->isiganda)? $card_conf->isiganda : '';?></textarea>
-							</p>
-							<p>
-								<label for="logo_ganda" class="llong">Tampilkan logo?</label>
-								<input id="logo_ganda" type="checkbox" name="logo_ganda" <?php echo $checked_logo_ganda;?> /> <span>Ya!</span>
-							</p>
-							<p>
-								<label for="kop_ganda" class="llong">Tampilkan kop?</label>
-								<input id="kop_ganda" type="checkbox" name="kop_ganda" <?php echo $checked_kop_ganda;?> /> <span>Ya!</span>
-							</p>
-							<p>
-								<label for="stempel_ganda" class="llong">Tampilkan stempel?</label>
-								<input id="stempel_ganda" type="checkbox" name="stempel_ganda" <?php echo $checked_stempel_ganda;?> /> <span>Ya!</span>
-							</p>
-						</div>
-					</div>
 				</div>
-			</fieldset>
-		</form>
+				<p class="clear">
+					<button id="sort_fields_submit"><?php echo __('Save');?></button>
+				</p>
+			</div>
+			<div id="file">
+				<fieldset><legend><?php echo __('Upload Logo');?></legend>
+				</fieldset>
+				<fieldset><legend><?php echo __('Download CSV');?></legend>
+				</fieldset>
+				<fieldset><legend><?php echo __('Upload CSV');?></legend>
+				</fieldset>
+			</div>
+		</div>
 	</div>
+	<div id="quick_options">
+		<p>
+			<label><?php echo __('Enabled Numbering');?>:</label>
+		</p>
+		<p>
+			<label><?php echo __('Reset Number To');?>:</label>
+		</p>
+	</div>
+	<div id="field_label">
+		<p>
+			<label><?php echo __('Field');?>:</label>
+		</p>
+		<p>
+			<label><?php echo __('Label');?>:</label>
+		</p>
+	</div>
+	<div id="field_sortable">
+		
+	</div>
+</div>
+<div id="dialog" title="<?php echo __('Information');?>">
+	<p id="validateTips"></p>
+</div>
+
 </body>
 </html>

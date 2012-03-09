@@ -2,7 +2,7 @@
 /*
  *      index.php
  *      
- *      Copyright 2011 Indra Sutriadi Pipii <indra.sutriadi@gmail.com>
+ *      Copyright 2011 Indra Sutriadi Pipii <indra@sutriadi.web.id>
  *      
  *      This program is free software; you can redistribute it and/or modify
  *      it under the terms of the GNU General Public License as published by
@@ -20,8 +20,10 @@
  *      MA 02110-1301, USA.
  */
 
+define('INDEX_AUTH', '1');
+
 if (!defined('SENAYAN_BASE_DIR')) {
-    require '../../../../sysconfig.inc.php';
+    require '../../../../../sysconfig.inc.php';
     require SENAYAN_BASE_DIR.'admin/default/session.inc.php';
 }
 
@@ -31,18 +33,21 @@ $can_read = utility::havePrivilege('plugins', 'r');
 $can_write = utility::havePrivilege('plugins', 'w');
 
 if (!$can_read && !$can_write) {
-	die('<div>You dont have enough privileges to view this section</div>');
+	die(sprintf('<div class="errorBox">%s</div>', __('You dont have enough privileges to view this section')));
 }
 
 $conf = $_SESSION['plugins_conf'];
-include('../func.php');
+include('../../func.php');
+include('../../s_datatables/func.php');
 
 checkip();
 checken();
 checkref();
 
-require('./info.php');
-
+$info = (object) plugin_get('scert');
+$name = isset($info->plugin_name) ? $info->plugin_name : 'SCert';
+$version = isset($info->plugin_version) ? $info->plugin_version : 'beta';
+$version .= isset($info->plugin_build) ? " build $info->plugin_build" : '';
 $dirmods = "./mods";
 $files = scandir($dirmods);
 sort($files);
@@ -52,43 +57,30 @@ foreach ($files as $file)
 	$dirmod = $dirmods . '/' . $file;
 	$optfile = $dirmod . '/opt.php';
 	$mainfile = $dirmod . '/index.php';
-	//~ echo "<pre>$file => $dirmod</pre>";
 	if ($file != "." AND $file != ".." AND ! is_dir($dirmod))
 		continue;
 	if (file_exists($optfile) AND file_exists($mainfile))
 	{
 		include($optfile);
-		//~ $jsfiles[] = $dirmod . '/' . $opt['jsfile'];
 		$options[] = array(
 			'text' => $opt['text'],
-			'target' => 'card_std',
+			'target' => $opt['target'],
 			'action' => $dirmod . '/' . $opt['action'],
+			'selected' => $file == 'html' ? 'selected' : ''
 		);
+		
 		unset($opt);
 	}
 }
 
-$opt = '';
+$module_opt = '';
 foreach ($options as $option)
-	$opt .= "<option value=\"chform('{$option['target']}', '{$option['action']}')\">{$option['text']}</option>";
-$option = $opt;
-
-require('./conf/plugin.conf.php');
-
-$cssdir = "./css/ui-themes/";
-$styles = scandir($cssdir);
-sort($styles);
-$optstyle = '';
-foreach ($styles as $style)
-{
-	$selected = $style == $defstyle ? 'selected' : '';
-	if ($style != "." AND $style != ".." AND is_dir($cssdir . "/" . $style))
-		$optstyle .= "<option $selected value=\"$style\">$style</option>";
-}
-$optstyles = "<select id=\"theme\" accesskey=\"T\" class=\"ui-state-default ui-corner-all\" onchange=\"reload(this.value, '$cssdir')\">"
-		. $optstyle
-	. "</select>";
-$onload = "reload('$defstyle', '$cssdir');";
+	$module_opt .= sprintf('<option value="chtarget(\'%s\', \'%s\')" %s>%s</option>',
+		$option['target'],
+		$option['action'],
+		$option['selected'],
+		$option['text']
+	);
 
 include('./template.php');
 

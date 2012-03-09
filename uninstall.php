@@ -1,8 +1,6 @@
+<?php
 /*
- *      smember.css
- *      
- *      please dont change this file
- *      if you want to add stylesheet, use custom.css
+ *      uninstall.php
  *      
  *      Copyright 2011 Indra Sutriadi Pipii <indra@sutriadi.web.id>
  *      
@@ -22,24 +20,17 @@
  *      MA 02110-1301, USA.
  */
 
-label.lshort {
-	display: inline;
-	float: left;
-	width: 60px;
+if (!defined('MODULES_WEB_ROOT_DIR')) {
+	exit();
 }
 
-label.lmid {
-	display: inline;
-	float: left;
-	width: 100px;
-}
+$scert_dir = FILES_UPLOAD_DIR . 'plugins' . DIRECTORY_SEPARATOR . 'scert';
 
-label.llong {
-	display: inline;
-	float: left;
-	width: 200px;
-}
+variable_del('scert_global');
+unlink($scert_dir . DIRECTORY_SEPARATOR . 'logo.png');
+if (file_exists($scert_dir . DIRECTORY_SEPARATOR . 'custom_logo.png'));
+	unlink($scert_dir . DIRECTORY_SEPARATOR . 'custom_logo.png');
+rmdir($scert_dir);
 
-label.lblock {
-	display: block;
-}
+$sql = "ALTER TABLE `member` DROP COLUMN `cert_number`";
+$dbs->query($sql);
